@@ -1,0 +1,86 @@
+<head>
+  <style>
+    label,
+    textarea,
+    input {
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+    }
+    
+    textarea {
+      padding: 10px;
+      max-width: 100%;
+      line-height: 1.5;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-shadow: 1px 1px 1px #999;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  input
+  <br/>
+  <label for="electricity-value">electricity value:</label>
+  <input type="text" id="electricity-value" name="electricity value" required size="10" />
+  <label for="water-pdf">water pdf:</label>
+  <textarea id="water-pdf" name="water pdf" rows="5" cols="33"></textarea>
+  <br/>
+  <button id="generate">generate</button>
+  <br/>
+  <br/>
+  <label for="output">output:</label>
+  <textarea id="output" name="output" rows="5" cols="33"></textarea>
+  <script>    
+    waterNames = ['ХВС', 'ГВС', 'Водоотв'];
+    electricityName = 'Электричество';
+    
+    // ---
+    
+    filterWaterLines = lines => lines.filter(line => waterNames.reduce((accum, value) => accum || line.startsWith(value), false));
+    
+    getWaterName = line => line.split(' ')[0];
+    
+    getWaterValue = line => parseFloat(line.match(/[0-9]+\.[0-9]+/g)[1]);
+    
+    getWaterObj = lines => lines.reduce((accum, line) => ({
+      ...accum, [getWaterName(line)]: getWaterValue(line)
+    }), {});
+    
+    // ---
+    
+    render = (obj) => 
+      Object.entries(obj).map(([key, value]) => `${key}: ${value}`).join('\n') + '\n' +
+      'Итого:\n' + Object.values(obj).reduce((accum, value) => accum + value);
+
+    // ---
+  
+    getResultStr = () => {
+      electricityValue = parseFloat(document.querySelector('#electricity-value').value);
+      waterStr = document.querySelector('#water-pdf').value;
+      
+      waterLines = waterStr.split('\n');
+      
+      filteredLines = filterWaterLines(waterLines);
+      
+      waterObj = getWaterObj(filteredLines);
+      
+      resultObj = {
+        [electricityName]: electricityValue,
+        ...waterObj,
+      }
+      
+      return render(resultObj);
+    }
+
+    fillOutput = () => {
+      document.querySelector('#output').value = getResultStr();
+    }
+
+    document.querySelector('button#generate').addEventListener('click', fillOutput);
+  </script>
+</body>
